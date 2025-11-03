@@ -1,4 +1,5 @@
 mod test_handlers;
+mod db;
 
 use axum::{
     response::Html,
@@ -9,9 +10,18 @@ use axum::{
 use test_handlers::{name_handler, test_handler};
 use tokio::net::TcpListener;
 use axum::Json;
-
+use db::connect_to_db;
 #[tokio::main]
 async fn main() {
+
+    let db_result = connect_to_db().await;
+    if let Err(err) = db_result {
+        panic!("Failed to connect to database: {}", err);
+    }
+    let db= db_result.unwrap();
+    println!("***Connected to database***");
+
+
     let app = Router::new()
         .route("/health_check", get(|| async {
             Json(serde_json::json!({ "status": "ok" }))
